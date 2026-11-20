@@ -1,0 +1,9 @@
+# Overrides locais do smolvm (montagens pessoais, segredos, ajustes de maquina)
+Smolfile.local
+.smolvm/*.local
+.smolvm/*.env
+
+# Gradle / build
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar

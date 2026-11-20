@@ -1,0 +1,60 @@
+# Sandbox do Antigravity CLI (agy). Generico: sem caminhos absolutos nem segredos.
+# Montagens pessoais e a GEMINI_API_KEY entram por flags/ambiente (ver .smolvm/README.md).
+
+image   = "localhost/agy-sandbox:latest"
+workdir = "/workspace"
+
+cpus    = 8
+memory  = 16384   # MiB; compilacao nativa GraalVM + Podman/Kind
+storage = 60      # GiB; disco ext4 da VM (camadas de imagem e dados do Podman)
+
+# Persistencia de sessao sem keyring grafico; fuso fixo.
+env = [
+  "GEMINI_FORCE_FILE_STORAGE=true",
+  "TZ=UTC",
+]
+
+# Repositorio montado em /workspace (caminho relativo a este arquivo/CWD, ver README).
+# "/var/lib/containers" (so o caminho do guest) vira diretorio no disco ext4 da VM:
+# overlayfs nao pode ficar sobre overlayfs, entao o storage do Podman precisa dele.
+volumes = [".:/workspace", "/var/lib/containers"]
+
+net = true
+net_backend = "virtio-net"
+
+[network]
+allow_hosts = [
+  # Google / Antigravity
+  "antigravity.google",
+  "*.googleapis.com",
+  "accounts.google.com",
+  "oauth2.googleapis.com",
+  # Dependencias (Maven / Gradle / Spring)
+  "repo.maven.apache.org",
+  "repo1.maven.org",
+  "plugins.gradle.org",
+  "plugins-artifacts.gradle.org",
+  "services.gradle.org",
+  "downloads.gradle.org",
+  "repo.spring.io",
+  # GitHub
+  "github.com",
+  "*.github.com",
+  "*.githubusercontent.com",
+  # Registries de containers (Testcontainers / Kind)
+  "registry-1.docker.io",
+  "*.docker.io",
+  "*.docker.com",
+  "ghcr.io",
+  "gcr.io",
+  "registry.k8s.io",
+  "quay.io",
+]
+
+# A chave do Gemini NUNCA entra na VM: o guest recebe um placeholder e o smolvm
+# injeta o valor real (da variavel GEMINI_API_KEY do host) so em HTTPS para o host abaixo.
+[[network.credentials]]
+name = "gemini"
+environment_variable = "GEMINI_API_KEY"
+allowed_hosts = ["generativelanguage.googleapis.com"]
+set_header = "x-goog-api-key"

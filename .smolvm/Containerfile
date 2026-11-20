@@ -1,0 +1,60 @@
+FROM debian:bookworm-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Base: build tools, git, Podman (containers dentro da microVM) e utilitarios.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl git unzip zip xz-utils jq make \
+      build-essential zlib1g-dev \
+      podman uidmap netavark fuse-overlayfs iptables \
+    && rm -rf /var/lib/apt/lists/*
+
+# Liberica NIK 25 (inclui JDK 25 + native-image), instalado em /opt/java.
+ARG NIK_URL=https://download.bell-sw.com/vm/25.0.1/bellsoft-liberica-vm-openjdk25.0.1+16-25.0.1+3-linux-amd64.tar.gz
+ARG NIK_SHA1=d529bfcdcb6516c6ab2a29659c4b546d19795fc9
+# --retry-all-errors + -C - retomam downloads que travam (--speed-limit/--speed-time).
+RUN curl -fsSL --retry 10 --retry-all-errors --retry-delay 3 --speed-limit 51200 --speed-time 20 -C - "$NIK_URL" -o /tmp/nik.tgz \
+    && echo "$NIK_SHA1  /tmp/nik.tgz" | sha1sum -c - \
+    && mkdir -p /opt/java \
+    && tar -xzf /tmp/nik.tgz -C /opt/java --strip-components=1 \
+    && rm /tmp/nik.tgz
+
+# Node 22 (necessario para o Bruno CLI).
+ARG NODE_VERSION=v22.20.0
+RUN curl -fsSL "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz" \
+    | tar -xJ -C /usr/local --strip-components=1 \
+    && npm install -g @usebruno/cli \
+    && npm cache clean --force
+
+# Ferramentas de Kubernetes, seguranca e IaC (binarios oficiais, amd64).
+ARG KUBECTL_VERSION=v1.37.2
+ARG HELM_VERSION=v4.3.2
+ARG KIND_VERSION=v0.33.0
+ARG TRIVY_VERSION=0.76.2
+ARG GITLEAKS_VERSION=8.30.1
+ARG TERRAFORM_VERSION=1.17.2
+# Downloads resilientes: retomam (-C -) e repetem se a conexao travar.
+# Uma camada por ferramenta para o cache reaproveitar o que ja baixou.
+RUN printf '#!/bin/sh\nexec curl -fsSL --retry 15 --retry-all-errors --retry-delay 3 --speed-limit 51200 --speed-time 20 -C - "$@"\n' > /usr/local/bin/dl && chmod +x /usr/local/bin/dl
+RUN dl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+RUN dl "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" -o /tmp/h.tgz && tar -xzf /tmp/h.tgz -C /usr/local/bin --strip-components=1 linux-amd64/helm && rm /tmp/h.tgz
+RUN dl "https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-amd64" -o /usr/local/bin/kind && chmod +x /usr/local/bin/kind
+RUN dl "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -o /tmp/t.tgz && tar -xzf /tmp/t.tgz -C /usr/local/bin trivy && rm /tmp/t.tgz
+RUN dl "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o /tmp/g.tgz && tar -xzf /tmp/g.tgz -C /usr/local/bin gitleaks && rm /tmp/g.tgz
+RUN dl "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" -o /tmp/tf.zip && unzip -q /tmp/tf.zip -d /usr/local/bin terraform && rm /tmp/tf.zip
+
+# Antigravity CLI (agy): instalador oficial -> /root/.local/bin/agy
+RUN curl -fsSL https://antigravity.google/cli/install.sh | bash
+
+# Podman dentro da microVM: sem systemd, rede via netavark, registries v2.
+RUN mkdir -p /etc/containers \
+    && printf 'unqualified-search-registries = ["docker.io"]\n' > /etc/containers/registries.conf \
+    && printf '[engine]\ncgroup_manager = "cgroupfs"\nevents_logger = "file"\n[network]\nnetwork_backend = "netavark"\n' > /etc/containers/containers.conf \
+    && { [ -f /etc/containers/policy.json ] || printf '{"default":[{"type":"insecureAcceptAnything"}]}\n' > /etc/containers/policy.json; }
+
+ENV JAVA_HOME=/opt/java \
+    GRAALVM_HOME=/opt/java \
+    GRADLE_USER_HOME=/root/.gradle \
+    PATH=/opt/java/bin:/root/.local/bin:${PATH}
+
+WORKDIR /workspace
