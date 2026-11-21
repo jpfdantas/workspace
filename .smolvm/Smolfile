@@ -1,60 +1,35 @@
-# Sandbox do Antigravity CLI (agy). Generico: sem caminhos absolutos nem segredos.
-# Montagens pessoais e a GEMINI_API_KEY entram por flags/ambiente (ver .smolvm/README.md).
-
-image   = "localhost/agy-sandbox:latest"
+# microVM smolvm. Sem caminhos absolutos nem segredos.
+# Construa a imagem a partir de Containerfile (ver README) e rode a partir da RAIZ do repo.
+image   = "localhost/dev-sandbox:latest"
 workdir = "/workspace"
+cpus    = 4
+memory  = 8192
+storage = 40
 
-cpus    = 8
-memory  = 16384   # MiB; compilacao nativa GraalVM + Podman/Kind
-storage = 60      # GiB; disco ext4 da VM (camadas de imagem e dados do Podman)
+env = ["TZ=UTC"]
 
-# Persistencia de sessao sem keyring grafico; fuso fixo.
-env = [
-  "GEMINI_FORCE_FILE_STORAGE=true",
-  "TZ=UTC",
-]
-
-# Repositorio montado em /workspace (caminho relativo a este arquivo/CWD, ver README).
-# "/var/lib/containers" (so o caminho do guest) vira diretorio no disco ext4 da VM:
-# overlayfs nao pode ficar sobre overlayfs, entao o storage do Podman precisa dele.
+# Unico mount do host: o projeto. Segundo item e so caminho do guest (disco da VM p/ Podman).
 volumes = [".:/workspace", "/var/lib/containers"]
 
 net = true
 net_backend = "virtio-net"
 
+# Egress restrito: allowlist minima.
 [network]
 allow_hosts = [
-  # Google / Antigravity
-  "antigravity.google",
-  "*.googleapis.com",
-  "accounts.google.com",
-  "oauth2.googleapis.com",
-  # Dependencias (Maven / Gradle / Spring)
-  "repo.maven.apache.org",
-  "repo1.maven.org",
-  "plugins.gradle.org",
-  "plugins-artifacts.gradle.org",
-  "services.gradle.org",
-  "downloads.gradle.org",
-  "repo.spring.io",
-  # GitHub
+  "deb.debian.org",
+  "security.debian.org",
   "github.com",
-  "*.github.com",
   "*.githubusercontent.com",
-  # Registries de containers (Testcontainers / Kind)
   "registry-1.docker.io",
   "*.docker.io",
-  "*.docker.com",
   "ghcr.io",
-  "gcr.io",
-  "registry.k8s.io",
   "quay.io",
 ]
 
-# A chave do Gemini NUNCA entra na VM: o guest recebe um placeholder e o smolvm
-# injeta o valor real (da variavel GEMINI_API_KEY do host) so em HTTPS para o host abaixo.
+# Segredo injetado em runtime a partir do ambiente do host; nunca entra na VM.
 [[network.credentials]]
-name = "gemini"
-environment_variable = "GEMINI_API_KEY"
-allowed_hosts = ["generativelanguage.googleapis.com"]
-set_header = "x-goog-api-key"
+name = "api"
+environment_variable = "API_KEY"
+allowed_hosts = ["api.example.com"]
+set_header = "Authorization"

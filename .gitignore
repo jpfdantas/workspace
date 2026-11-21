@@ -7,3 +7,17 @@ Smolfile.local
 .gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
+
+# Estado local de VMs/microVMs/devpod
+.devpod/
+
+# Segredos e caches
+.env
+.env.*
+!.env.example
+.cache/
+*.log
+.smolvm/*.db
+.smolvm/data/
+.lima/_config/
+.lima/*/

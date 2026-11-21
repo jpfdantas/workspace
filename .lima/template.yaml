@@ -1,0 +1,31 @@
+# Uso (da raiz do repo): limactl start --name=dev ./.lima/template.yaml
+minimumLimaVersion: "1.0.0"
+images:
+  - location: "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2"
+    arch: "x86_64"
+  - location: "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-arm64.qcow2"
+    arch: "aarch64"
+cpus: 4
+memory: "8GiB"
+disk: "40GiB"
+# Sem montagem do $HOME do host; somente o repo (resolvido via --set, ver README).
+mounts:
+  - location: "{{.Dir}}/.."
+    mountPoint: /workspace
+    writable: true
+containerd:
+  system: false
+  user: false
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update
+      apt-get install -y --no-install-recommends git curl ca-certificates podman uidmap
+  - mode: user
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      /workspace/.smolvm/setup.sh

@@ -1,0 +1,13 @@
+{
+  "name": "dev-sandbox",
+  "build": {
+    "dockerfile": "../.smolvm/Containerfile",
+    "context": ".."
+  },
+  "remoteUser": "dev",
+  "containerUser": "dev",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "mounts": [],
+  "containerEnv": { "TZ": "UTC" }
+}
