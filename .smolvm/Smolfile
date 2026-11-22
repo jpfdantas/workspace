@@ -1,20 +1,24 @@
-# microVM smolvm. Sem caminhos absolutos nem segredos.
-# Construa a imagem a partir de .devcontainer/Containerfile (ver README) e rode a partir da RAIZ do repo.
-image   = "localhost/dev-sandbox:latest"
-workdir = "/workspace"
 cpus    = 4
-memory  = 8192
-storage = 40
-
 env = ["TZ=UTC"]
-
-# Unico mount do host: o projeto. Segundo item e so caminho do guest (disco da VM p/ Podman).
-volumes = [".:/workspace", "/var/lib/containers"]
-
+image   = "localhost/dev-sandbox:latest"
+memory  = 8192
 net = true
 net_backend = "virtio-net"
+storage = 40
+volumes = [".:/workspace", "/var/lib/containers"]
+workdir = "/workspace"
 
-# Egress restrito: allowlist minima.
+[[network.credentials]]
+allowed_hosts = [
+    "cloudcode-pa.googleapis.com",
+    "daily-cloudcode-pa.googleapis.com",
+    "generativelanguage.googleapis.com",
+    "www.googleapis.com",
+]
+environment_variable = "AGY_ACCESS_TOKEN"
+name = "agy"
+set_header = "authorization"
+
 [network]
 allow_hosts = [
   "*.docker.io",
@@ -31,12 +35,3 @@ allow_hosts = [
   "security.debian.org",
   "www.googleapis.com",
 ]
-
-# OAuth do agy: o guest recebe so um placeholder em AGY_ACCESS_TOKEN; o smolvm troca pelo
-# valor real (ambiente do host, "Bearer <token>") apenas em HTTPS para os hosts abaixo.
-# O valor vem de start.sh (lib.sh) (nunca persistido).
-[[network.credentials]]
-name = "agy"
-environment_variable = "AGY_ACCESS_TOKEN"
-allowed_hosts = ["cloudcode-pa.googleapis.com", "daily-cloudcode-pa.googleapis.com", "www.googleapis.com", "generativelanguage.googleapis.com"]
-set_header = "authorization"
