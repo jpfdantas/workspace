@@ -17,18 +17,18 @@ net_backend = "virtio-net"
 # Egress restrito: allowlist minima.
 [network]
 allow_hosts = [
-  "deb.debian.org",
-  "security.debian.org",
-  "github.com",
-  "*.githubusercontent.com",
-  "registry-1.docker.io",
   "*.docker.io",
-  "ghcr.io",
-  "quay.io",
+  "*.githubusercontent.com",
   "cloudcode-pa.googleapis.com",
-  "generativelanguage.googleapis.com",
-  "oauth2.googleapis.com",
   "daily-cloudcode-pa.googleapis.com",
+  "deb.debian.org",
+  "generativelanguage.googleapis.com",
+  "ghcr.io",
+  "github.com",
+  "oauth2.googleapis.com",
+  "quay.io",
+  "registry-1.docker.io",
+  "security.debian.org",
   "www.googleapis.com",
 ]
 
