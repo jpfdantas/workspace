@@ -1,10 +1,10 @@
 # Ambiente isolado unificado (smolvm, Lima, DevPod)
 
-Base unica: `.smolvm/Containerfile` + `.smolvm/setup.sh` (idempotente). Sem diretorio `infra/`: tudo em `.smolvm/`, `.lima/` e `.devcontainer/`. Nenhum runtime monta credenciais do host; segredos entram via ambiente em runtime. Rode tudo na **raiz do repositorio**.
+Base unica: `.devcontainer/Containerfile` + `.smolvm/setup.sh` (idempotente). Sem diretorio `infra/`: tudo em `.smolvm/`, `.lima/` e `.devcontainer/`. Nenhum runtime monta credenciais do host; segredos entram via ambiente em runtime. Rode tudo na **raiz do repositorio**.
 
 ## smolvm
 ```bash
-podman build -t localhost/dev-sandbox:latest -f .smolvm/Containerfile .
+podman build -t localhost/dev-sandbox:latest -f .devcontainer/Containerfile .
 export API_KEY=...   # opcional; permanece no host
 podman save localhost/dev-sandbox:latest | smolvm machine create --name dev -s .smolvm/Smolfile --image -
 smolvm machine start --name dev

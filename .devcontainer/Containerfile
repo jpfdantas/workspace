@@ -24,5 +24,10 @@ USER ${USERNAME}
 ENV HOME=/home/${USERNAME}
 RUN /usr/local/bin/setup.sh
 
+# Antigravity CLI (agy): instalador oficial -> ~/.local/bin/agy
+ENV PATH="${HOME}/.local/bin:${PATH}"
+RUN curl -fsSL https://antigravity.google/cli/install.sh | bash \
+    && agy --version
+
 WORKDIR /workspace
 CMD ["sleep", "infinity"]

@@ -1,5 +1,5 @@
 # microVM smolvm. Sem caminhos absolutos nem segredos.
-# Construa a imagem a partir de Containerfile (ver README) e rode a partir da RAIZ do repo.
+# Construa a imagem a partir de .devcontainer/Containerfile (ver README) e rode a partir da RAIZ do repo.
 image   = "localhost/dev-sandbox:latest"
 workdir = "/workspace"
 cpus    = 4
@@ -25,11 +25,18 @@ allow_hosts = [
   "*.docker.io",
   "ghcr.io",
   "quay.io",
+  "cloudcode-pa.googleapis.com",
+  "generativelanguage.googleapis.com",
+  "oauth2.googleapis.com",
+  "daily-cloudcode-pa.googleapis.com",
+  "www.googleapis.com",
 ]
 
-# Segredo injetado em runtime a partir do ambiente do host; nunca entra na VM.
+# OAuth do agy: o guest recebe so um placeholder em AGY_ACCESS_TOKEN; o smolvm troca pelo
+# valor real (ambiente do host, "Bearer <token>") apenas em HTTPS para os hosts abaixo.
+# O valor vem de host-token.sh (nunca persistido).
 [[network.credentials]]
-name = "api"
-environment_variable = "API_KEY"
-allowed_hosts = ["api.example.com"]
-set_header = "Authorization"
+name = "agy"
+environment_variable = "AGY_ACCESS_TOKEN"
+allowed_hosts = ["cloudcode-pa.googleapis.com", "daily-cloudcode-pa.googleapis.com", "www.googleapis.com", "generativelanguage.googleapis.com"]
+set_header = "authorization"
