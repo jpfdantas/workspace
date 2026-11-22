@@ -34,7 +34,7 @@ allow_hosts = [
 
 # OAuth do agy: o guest recebe so um placeholder em AGY_ACCESS_TOKEN; o smolvm troca pelo
 # valor real (ambiente do host, "Bearer <token>") apenas em HTTPS para os hosts abaixo.
-# O valor vem de host-token.sh (nunca persistido).
+# O valor vem de start.sh (lib.sh) (nunca persistido).
 [[network.credentials]]
 name = "agy"
 environment_variable = "AGY_ACCESS_TOKEN"

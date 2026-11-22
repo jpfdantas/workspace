@@ -4,11 +4,9 @@ Base unica: `.devcontainer/Containerfile` + `.smolvm/setup.sh` (idempotente). Se
 
 ## smolvm
 ```bash
-podman build -t localhost/dev-sandbox:latest -f .devcontainer/Containerfile .
-export API_KEY=...   # opcional; permanece no host
-podman save localhost/dev-sandbox:latest | smolvm machine create --name dev -s .smolvm/Smolfile --image -
-smolvm machine start --name dev
-smolvm machine exec --name dev -- bash
+.smolvm/start.sh    # builda a imagem, cria/inicia a VM e entra nela
+.smolvm/stop.sh     # para a VM
+.smolvm/delete.sh   # deleta a VM
 ```
 
 ## Lima
@@ -31,5 +29,5 @@ devpod ssh <nome-do-workspace>
 ```bash
 python3 -c "import json;json.load(open('.devcontainer/devcontainer.json'))"
 python3 -c "import yaml;yaml.safe_load(open('.lima/template.yaml'))"
-bash -n .smolvm/setup.sh && shellcheck .smolvm/setup.sh
+bash -n .smolvm/*.sh && shellcheck .smolvm/*.sh
 ```
