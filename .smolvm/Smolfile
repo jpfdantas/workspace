@@ -1,7 +1,7 @@
-cpus    = 4
+cpus = 4
 env = ["TZ=UTC"]
-image   = "localhost/dev-sandbox:latest"
-memory  = 8192
+image = "localhost/dev-sandbox:latest"
+memory = 8192
 net = true
 net_backend = "virtio-net"
 storage = 40
@@ -21,17 +21,17 @@ set_header = "authorization"
 
 [network]
 allow_hosts = [
-  "*.docker.io",
-  "*.githubusercontent.com",
-  "cloudcode-pa.googleapis.com",
-  "daily-cloudcode-pa.googleapis.com",
-  "deb.debian.org",
-  "generativelanguage.googleapis.com",
-  "ghcr.io",
-  "github.com",
-  "oauth2.googleapis.com",
-  "quay.io",
-  "registry-1.docker.io",
-  "security.debian.org",
-  "www.googleapis.com",
+    "*.docker.io",
+    "*.githubusercontent.com",
+    "cloudcode-pa.googleapis.com",
+    "daily-cloudcode-pa.googleapis.com",
+    "deb.debian.org",
+    "generativelanguage.googleapis.com",
+    "ghcr.io",
+    "github.com",
+    "oauth2.googleapis.com",
+    "quay.io",
+    "registry-1.docker.io",
+    "security.debian.org",
+    "www.googleapis.com",
 ]
